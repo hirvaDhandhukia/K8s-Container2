@@ -1,0 +1,46 @@
+options:
+  logging: CLOUD_LOGGING_ONLY
+  default_logs_bucket_behavior: REGIONAL_USER_OWNED_BUCKET
+
+substitutions:
+  _SHORT_SHA: "latest"  # latest tag
+  _ARTIFACT_REGISTRY: "us-central1-docker.pkg.dev/k8s-hirva/kube-repo"  # AR repo-id
+  _GKE_CLUSTER: "kube-cluster"  # GKE cluster
+  _GKE_ZONE: "us-central1-c"  # GKE cluster zone
+
+steps:
+  # Step 1: Build and push Container2 image
+  # Build c2
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'Build Container2'
+    args:
+      - 'build'
+      - '-t'
+      - '${_ARTIFACT_REGISTRY}/container2:latest'
+      - 'container2/'
+
+  # Push c2 to AR
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'Push Container2'
+    args:
+      - 'push'
+      - '${_ARTIFACT_REGISTRY}/container2:latest'
+
+  # Step 2: Deploy to GKE
+  - name: 'gcr.io/cloud-builders/kubectl'
+    id: 'Deploy to GKE'
+    args:
+      - 'apply'
+      - '-f'
+      - 'k8s/'  # path to Kubernetes YAML files
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_ZONE}'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
+    
+  # Step 3: Kubectl Restart Deployment  
+  - name: "gcr.io/cloud-builders/kubectl"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        kubectl rollout restart deployment container2-deployment
