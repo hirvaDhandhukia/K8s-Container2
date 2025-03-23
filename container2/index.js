@@ -22,7 +22,7 @@ let stream;
 app.post("/process", (request, response)=>{
     let reqData = request.body;
     let [fileName, productName] = [reqData.file, reqData.product];
-    console.log("received file and product as", fileName, productName);
+    console.log("received the file and product as", fileName, productName);
     
     response.setHeader('content-type', 'application/json');
     // object to store product entity
