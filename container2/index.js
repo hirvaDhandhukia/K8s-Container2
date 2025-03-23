@@ -26,7 +26,7 @@ app.post("/process", (request, response)=>{
     
     response.setHeader('content-type', 'application/json');
     // object to store product entity
-    console.log("collecting data");
+    console.log("collecting more data");
     const collection = {};
 
     stream = fs.createReadStream(`${rootPath}/${fileName}`)
